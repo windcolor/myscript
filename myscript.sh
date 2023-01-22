@@ -60,8 +60,8 @@ edit_sshd_config(){
   /usr/bin/echo "'${param[1]} no' was added to ${file}."
   /usr/bin/echo "${param[2]} yes" >> ${file}
   /usr/bin/echo "'${param[2]} yes' was added to ${file}."
-  /usr/bin/echo "${param[3]}  /home/bitnami/.ssh/authorized_keys" >> ${file}
-  /usr/bin/echo "'${param[3]}  /home/bitnami/.ssh/authorized_keys' was added to ${file}."
+  /usr/bin/echo "${param[3]}  ~/.ssh/authorized_keys" >> ${file}
+  /usr/bin/echo "'${param[3]}  ~/.ssh/authorized_keys' was added to ${file}."
   /usr/bin/echo "${param[4]} no" >> ${file}
   /usr/bin/echo "'${param[4]} no' was added to ${file}"
 }
