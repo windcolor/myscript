@@ -84,6 +84,7 @@ edit_sshd_config(){
 
 reload_sshd(){
   sudo systemctl enable ssh
+  sudo systemctl start ssh
   sudo systemctl reload sshd
   /usr/bin/echo "Run '/usr/bin/systemctl reload sshd.service'...OK"
 }
