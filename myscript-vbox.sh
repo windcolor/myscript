@@ -17,9 +17,9 @@
 # Variables
 sudo passwd
 su
-git clone https://github.com/windcolor/myscript.git
-cd myscript
-git checkout vbox
+#git clone https://github.com/windcolor/myscript.git
+#cd myscript
+#git checkout vbox
 
 stop_ssh_file="/etc/ssh/sshd_not_to_be_run"
 
