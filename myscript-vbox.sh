@@ -1,8 +1,8 @@
 #!/bin/bash
-ssh-keygen
+#ssh-keygen
 #cd /home/bitnami/.ssh
 #cat id_rsa.pub >> /home/bitnami/.ssh/authorized_keys
-echo " key pair created"
+#echo " key pair created"
 # Description:
 # This script sets certain parameters in /etc/ssh/sshd_config.
 # It's not production ready and only used for training purposes.
@@ -16,8 +16,11 @@ echo " key pair created"
 #set -x
 # Variables
 
+sudo passwd
+su
+
 file="$1"
-param[1]="PermitRootLogin "
+param[1]="PermitRootLogin"
 param[2]="PubkeyAuthentication"
 param[3]="AuthorizedKeysFile"
 param[4]="PasswordAuthentication"
@@ -56,14 +59,14 @@ edit_sshd_config(){
     /usr/bin/sed -i '/^'"${PARAM}"'/d' ${file}
     /usr/bin/echo "All lines beginning with '${PARAM}' were deleted from ${file}."
   done
-  /usr/bin/echo "${param[1]} no" >> ${file}
-  /usr/bin/echo "'${param[1]} no' was added to ${file}."
-  /usr/bin/echo "${param[2]} yes" >> ${file}
-  /usr/bin/echo "'${param[2]} yes' was added to ${file}."
-  /usr/bin/echo "${param[3]}  ~/.ssh/authorized_keys" >> ${file}
-  /usr/bin/echo "'${param[3]}  ~/.ssh/authorized_keys' was added to ${file}."
-  /usr/bin/echo "${param[4]} no" >> ${file}
-  /usr/bin/echo "'${param[4]} no' was added to ${file}"
+  /usr/bin/echo "${param[1]} yes" >> ${file}
+  /usr/bin/echo "'${param[1]} yes' was added to ${file}."
+#  /usr/bin/echo "${param[2]}  no" >> ${file}
+#  /usr/bin/echo "'${param[2]} yes' was added to ${file}."
+#  /usr/bin/echo "${param[3]}  ~/.ssh/authorized_keys" >> ${file}
+#  /usr/bin/echo "'${param[3]}  ~/.ssh/authorized_keys' was added to ${file}."
+  /usr/bin/echo "${param[4]} yes" >> ${file}
+  /usr/bin/echo "'${param[4]} yes' was added to ${file}"
 }
 
 reload_sshd(){
@@ -94,3 +97,54 @@ backup_sshd_config
 edit_sshd_config
 reload_sshd
 #find  / -name *.bb -type f -print -exec  rm -f {} \;
+
+#reset  mariadb  root password
+
+/usr/bin/echo "#reset  mariadb  root password"
+
+reset_mariadb_root_password(){
+  /usr/bin/echo "#stop mariadb service"
+  sudo systemctl stop mariadb;
+  /usr/bin/echo "#stop mariadb service successed"
+  /usr/bin/echo "# access mariadb using mysqld_safe mode "
+
+  mysqld_safe --skip-grant-tables &
+ /usr/bin/echo "# change root password to 123456 "
+  usemql="use mysql"
+  mysql -e "${usemql}"
+  root_passwd_123456="ALTER USER 'root'@'%' IDENTIFIED BY '123456'"
+  mysql -e "${root_passwd_123456}"
+  #ALTER USER 'root'@'%' IDENTIFIED BY '123456';
+  mysql -e "FLUSH PRIVILEGES"
+  mysql -e "exit"
+  /usr/bin/echo "# close mariadb safemode "
+  mysqladmin -uroot -p123456 shutdown
+  /usr/bin/echo "# resart mariadb"
+  sudo systemctl start mariadb
+  }
+  reset_mariadb_root_password
+  
+  privileges="grant all privileges on *.* to root@'%' identified by '123456' with grant option"
+  mysql -uroot -p123456 -e"${privileges}"
+  mysql -uroot -p123456 -e "FLUSH PRIVILEGES"
+  mysql -e "exit"
+
+  /usr/bin/echo "# change my.cnf bind_address=0.0.0.0"
+
+  mycnf_bind="/opt/bitnami/mariadb/conf/my.cnf"
+  par="bind_address"
+  /usr/bin/sed -i '/^'"${PARAM}"'/d' ${file}
+  /usr/bin/echo "All lines beginning with '${PARAM}' were deleted from ${file}."
+  /usr/bin/echo "${par} = 0.0.0.0" >> ${file}
+  /usr/bin/echo "'${par} =0.0.0.0' was added to ${file}"
+  /usr/bin/echo "# resart mariadb"
+  sudo systemctl start mariadb
+
+  #open 3306 port for remote access mariadb
+  sudo iptables -I INPUT -p tcp --dport 3306 -j ACCEPT
+  iptables-save
+  apt-get install iptables-persistent
+  sudo netfilter-persistent save
+  sudo netfilter-persistent reload
+  
+
