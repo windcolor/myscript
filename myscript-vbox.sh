@@ -15,8 +15,8 @@
 # To enable debugging mode remove '#' from the following line
 #set -x
 # Variables
-sudo passwd
-su
+#sudo passwd
+#su
 #git clone https://github.com/windcolor/myscript.git
 #cd myscript
 #git checkout vbox
