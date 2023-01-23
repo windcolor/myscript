@@ -16,8 +16,8 @@
 #set -x
 # Variables
 
-sudo passwd
-su
+#sudo passwd
+#su
 
 file="$1"
 param[1]="PermitRootLogin"
@@ -133,8 +133,8 @@ reset_mariadb_root_password(){
 
   mycnf_bind="/opt/bitnami/mariadb/conf/my.cnf"
   par="bind_address"
-  /usr/bin/sed -i '/^'"${PARAM}"'/d' ${file}
-  /usr/bin/echo "All lines beginning with '${PARAM}' were deleted from ${file}."
+  /usr/bin/sed -i '/^'"${par}"'/d' ${file}
+  /usr/bin/echo "All lines beginning with '${par}' were deleted from ${file}."
   /usr/bin/echo "${par} = 0.0.0.0" >> ${file}
   /usr/bin/echo "'${par} =0.0.0.0' was added to ${file}"
   /usr/bin/echo "# resart mariadb"
