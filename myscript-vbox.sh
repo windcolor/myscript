@@ -15,9 +15,12 @@
 # To enable debugging mode remove '#' from the following line
 #set -x
 # Variables
+sudo passwd
+su
+git clone https://github.com/windcolor/myscript.git
+cd myscript
+git checkout vbox
 
-#sudo passwd
-#su
 stop_ssh_file="/etc/ssh/sshd_not_to_be_run"
 
 find_stop_ssh_file(){
