@@ -18,6 +18,19 @@
 
 #sudo passwd
 #su
+stop_ssh_file="/etc/ssh/sshd_not_to_be_run"
+
+find_stop_ssh_file(){
+  if [ -f ${file} ]
+  then
+    sudo rm -f ${stop_ssh_file} 
+    /usr/bin/echo "File ${stop_ssh_file} is deleted successful"
+  else
+    /usr/bin/echo "File ${stop_ssh_file} not found."
+    exit 1
+  fi
+}
+
 
 file="$1"
 param[1]="PermitRootLogin"
@@ -93,6 +106,7 @@ then
 
 file="/etc/ssh/sshd_config"
 fi
+find_stop_ssh_file
 backup_sshd_config
 edit_sshd_config
 reload_sshd
@@ -101,50 +115,23 @@ reload_sshd
 #reset  mariadb  root password
 
 /usr/bin/echo "#reset  mariadb  root password"
+/usr/bin/echo "#stop mariadb service"
+sudo /opt/bitnami/ctlscript.sh stop mariadb
+/usr/bin/echo "# change my.cnf bind_address=0.0.0.0"
+mycnf_bind="/opt/bitnami/mariadb/conf/my.cnf"
+par="bind_address"
+/usr/bin/sed -i '/^'"${par}"'/d' ${mysqld_safe}
+/usr/bin/echo "All lines beginning with '${par}' were deleted from ${mysqld_safe}."
+/usr/bin/echo "${par} = 0.0.0.0" >> ${mysqld_safe}
+/usr/bin/echo "'${par} =0.0.0.0' was added to ${mysqld_safe}"
+#/usr/bin/echo "# resart mariadb"
+#sudo systemctl start mariadb
 
-reset_mariadb_root_password(){
-  /usr/bin/echo "#stop mariadb service"
-  sudo systemctl stop mariadb;
-  /usr/bin/echo "#stop mariadb service successed"
-  /usr/bin/echo "# access mariadb using mysqld_safe mode "
-
-  mysqld_safe --skip-grant-tables &
- /usr/bin/echo "# change root password to 123456 "
-  usemql="use mysql"
-  mysql -e "${usemql}"
-  root_passwd_123456="ALTER USER 'root'@'%' IDENTIFIED BY '123456'"
-  mysql -e "${root_passwd_123456}"
-  #ALTER USER 'root'@'%' IDENTIFIED BY '123456';
-  mysql -e "FLUSH PRIVILEGES"
-  mysql -e "exit"
-  /usr/bin/echo "# close mariadb safemode "
-  mysqladmin -uroot -p123456 shutdown
-  /usr/bin/echo "# resart mariadb"
-  sudo systemctl start mariadb
-  }
-  reset_mariadb_root_password
-  
-  privileges="grant all privileges on *.* to root@'%' identified by '123456' with grant option"
-  mysql -uroot -p123456 -e"${privileges}"
-  mysql -uroot -p123456 -e "FLUSH PRIVILEGES"
-  mysql -e "exit"
-
-  /usr/bin/echo "# change my.cnf bind_address=0.0.0.0"
-
-  mycnf_bind="/opt/bitnami/mariadb/conf/my.cnf"
-  par="bind_address"
-  /usr/bin/sed -i '/^'"${par}"'/d' ${file}
-  /usr/bin/echo "All lines beginning with '${par}' were deleted from ${file}."
-  /usr/bin/echo "${par} = 0.0.0.0" >> ${file}
-  /usr/bin/echo "'${par} =0.0.0.0' was added to ${file}"
-  /usr/bin/echo "# resart mariadb"
-  sudo systemctl start mariadb
-
-  #open 3306 port for remote access mariadb
-  sudo iptables -I INPUT -p tcp --dport 3306 -j ACCEPT
-  iptables-save
-  apt-get install iptables-persistent
-  sudo netfilter-persistent save
-  sudo netfilter-persistent reload
+#open 3306 port for remote access mariadb
+sudo iptables -I INPUT -p tcp --dport 3306 -j ACCEPT
+iptables-save
+apt-get install iptables-persistent
+sudo netfilter-persistent save
+sudo netfilter-persistent reload
   
 
